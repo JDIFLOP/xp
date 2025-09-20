@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>XP Tracker</title>
+  <style>
+    table { border-collapse: collapse; width: 80%; margin-top: 20px;}
+    th, td { border: 1px solid #ddd; padding: 8px;}
+    th { background-color: #f2f2f2;}
+  </style>
+</head>
+<body>
+<h1>XP Tracker</h1>
+<p id="status">กำลังบันทึกข้อมูล...</p>
+
+<script>
+async function sendLocation() {
+    let latitude = null;
+    let longitude = null;
+
+    // รับตำแหน่ง GPS ถ้าอนุญาต
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+            latitude = pos.coords.latitude;
+            longitude = pos.coords.longitude;
+            postData(latitude, longitude);
+        }, (err) => {
+            console.log("GPS ไม่อนุญาต:", err.message);
+            postData(null, null);
+        });
+    } else {
+        postData(null, null);
+    }
+}
+
+async function postData(lat, lon) {
+    try {
+        const res = await fetch('/save-location', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({latitude: lat, longitude: lon})
+        });
+        const data = await res.text();
+        document.getElementById('status').innerText = data;
+    } catch (err) {
+        document.getElementById('status').innerText = 'บันทึกไม่สำเร็จ: ' + err.message;
+    }
+}
+
+// เรียกทันทีเมื่อโหลดหน้าเว็บ
+window.onload = sendLocation;
+</script>
+
+<p>ดู <a href="/xp" target="_blank">XP รวมทั้งหมด</a> หรือ <a href="/history" target="_blank">ประวัติทั้งหมด</a></p>
+
+</body>
+</html>
