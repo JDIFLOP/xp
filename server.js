@@ -28,11 +28,13 @@ CREATE TABLE IF NOT EXISTS xp_log (
   xp INT DEFAULT 1,
   timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
-`).catch(err => console.error(err));
+`).catch(err => console.error("Debug: Create table error:", err));
 
 app.post("/save-location", async (req, res) => {
   const { latitude, longitude, device, os, browser, visitTime } = req.body || {};
   const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress).split(',')[0].trim();
+
+  console.log("Debug: Received payload:", { ip, latitude, longitude, device, os, browser, visitTime });
 
   try {
     await pool.query(
@@ -42,8 +44,8 @@ app.post("/save-location", async (req, res) => {
     );
     res.send(`บันทึกสำเร็จ! IP: ${ip}, Device: ${device}, OS: ${os}, Browser: ${browser}, เวลาเข้าชม: ${visitTime}, XP +1`);
   } catch (err) {
-    console.error(err);
-    res.status(500).send("บันทึกไม่สำเร็จ");
+    console.error("Debug: DB Insert error:", err);
+    res.status(500).send("บันทึกไม่สำเร็จ: " + err.message);
   }
 });
 
@@ -52,7 +54,7 @@ app.get("/xp", async (req, res) => {
     const result = await pool.query("SELECT SUM(xp) AS total_xp FROM xp_log");
     res.send(`<h1>XP ทั้งหมด: ${result.rows[0].total_xp}</h1><p><a href="/">กลับหน้าแรก</a></p>`);
   } catch (err) {
-    console.error(err);
+    console.error("Debug: XP query error:", err);
     res.status(500).send("ไม่สามารถดึงข้อมูลได้");
   }
 });
@@ -82,7 +84,7 @@ app.get("/history", async (req, res) => {
     html += `</table><p><a href="/">กลับหน้าแรก</a></p>`;
     res.send(html);
   } catch (err) {
-    console.error(err);
+    console.error("Debug: History query error:", err);
     res.status(500).send("ไม่สามารถดึงประวัติได้");
   }
 });
