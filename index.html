@@ -50,8 +50,10 @@
 
             if (allowed) {
                 document.getElementById('status').innerText = 'โหลดสำเร็จ ✅';
-                requestBtn.style.display = 'none';
+                requestBtn.style.display = 'none'; // ซ่อนปุ่มเมื่ออนุญาตเรียบร้อย
+            } else {
                 document.getElementById('status').innerText = 'โหลดไม่สำเร็จ ❌ กรุณาอนุญาตตำแหน่ง';
+                // ปุ่มยังคงอยู่เพื่อให้กดซ้ำ
             }
         } catch (err) {
             document.getElementById('status').innerText = 'โหลดไม่สำเร็จ: ' + err.message;
