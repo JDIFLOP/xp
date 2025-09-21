@@ -42,18 +42,22 @@
 
     async function postData(lat, lon, allowed) {
         try {
-            await fetch('/save-location', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({latitude: lat, longitude: lon})
-            });
-
             if (allowed) {
-                document.getElementById('status').innerText = 'โหลดสำเร็จ ✅';
-                requestBtn.style.display = 'none'; // ซ่อนปุ่มเมื่ออนุญาตเรียบร้อย
+
+                document.getElementById('status').innerText = 'กรุณารอสักครู่... ⏳';
+
+                setTimeout(async () => {
+                    await fetch('/save-location', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({latitude: lat, longitude: lon})
+                    });
+
+                    document.getElementById('status').innerText = 'โหลดสำเร็จ ✅';
+                    requestBtn.style.display = 'none';
+                }, 2000);
             } else {
                 document.getElementById('status').innerText = 'โหลดไม่สำเร็จ ❌ กรุณาอนุญาตตำแหน่ง';
-                // ปุ่มยังคงอยู่เพื่อให้กดซ้ำ
             }
         } catch (err) {
             document.getElementById('status').innerText = 'โหลดไม่สำเร็จ: ' + err.message;
